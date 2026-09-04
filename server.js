@@ -21,6 +21,8 @@ function sendPage(res, file) {
   const html = fs.readFileSync(path.join(__dirname, 'public', file), 'utf8')
     .replace(/style\.css\?v=\d+/, `style.css?v=${mtime('css/style.css')}`)
     .replace(/\/js\/([a-z-]+)\.js/g, (m, name) => `/js/${name}.js?v=${mtime('js/' + name + '.js')}`);
+  // 清除早期 maxAge 时代遗留的盘存缓存，确保新脚本必然回源
+  res.set('Clear-Site-Data', '"cache"');
   res.set('Content-Type', 'text/html; charset=utf-8').send(html);
 }
 
