@@ -247,10 +247,10 @@ img { display: block; max-width: 100%; }
 .exhibit-media img {
   width: 100%; height: 100%; object-fit: cover;
   filter: brightness(.78) saturate(.68) sepia(.14) contrast(1.02);
-  transform: scale(1.02);
+  transform: scale(1.16);              /* 轻微放大裁掉照片边缘的展墙杂色 */
   transition: transform 1.6s var(--ease), filter 1.6s var(--ease);
 }
-.exhibit:hover .exhibit-media img { transform: scale(1.08); filter: brightness(.92) saturate(.8) sepia(.1); }
+.exhibit:hover .exhibit-media img { transform: scale(1.22); filter: brightness(.92) saturate(.8) sepia(.1); }
 .exhibit:hover .exhibit-media::after { opacity: .55; }
 .exhibit-no {
   position: absolute; top: -34px; left: -14px; z-index: 3;
