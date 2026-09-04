@@ -1,0 +1,24 @@
+{
+  "name": "fo-jingdian",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "postinstall": "node scripts/setup-fonts.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fontsource/ma-shan-zheng": "^5.3.1",
+    "@fontsource/noto-serif-sc": "^5.3.0",
+    "@fontsource/zcool-xiaowei": "^5.3.0",
+    "@fontsource/zhi-mang-xing": "^5.3.0",
+    "express": "^5.2.1",
+    "lxgw-wenkai-screen-web": "^1.522.0",
+    "opencc-js": "^1.4.2"
+  }
+}
