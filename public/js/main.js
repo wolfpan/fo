@@ -1,9 +1,34 @@
 /* 般若藏 · 首页逻辑 */
 const NUM = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 
+/* 陈列图库：每次刷新随机轮换（Fisher-Yates 洗牌取三，不重复） */
+const GALLERY = [
+  'img_1',   // 黑底犍陀罗佛首 · 背光
+  'img_3',   // 深灰底菩萨立像
+  'img_5',   // 犍陀罗佛首（大都会）
+  'img_6',   // 黑底犍陀罗佛首
+  'img_8',   // 深棕石雕坐佛
+  'img_9',   // 棕榈叶经·手稿
+  'img_10',  // 贝叶经彩页
+  'img_11',  // 金色卧佛
+  'img_12',  // 黑底片岩佛立像
+  'img_13',  // 黑底片岩佛坐像
+].map(n => `/assets/raw/${n}.jpg`);
+
+function pickThree() {
+  const pool = [...GALLERY];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 3);
+}
+
 async function boot() {
   const res = await fetch('/api/sutras');
   const sutras = await res.json();
+  const picks = pickThree();
+  sutras.forEach((s, i) => { s.image = picks[i]; });
 
   const box = document.getElementById('exhibits');
   const frag = document.createDocumentFragment();
