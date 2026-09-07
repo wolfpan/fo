@@ -1,6 +1,6 @@
 const sharp = require('sharp');
 const fs = require('fs');
-const GALLERY = ['img_1','img_3','img_6','img_12','img_14','img_15','img_22','img_23'];
+const GALLERY = ['img_1','img_3','img_6','img_14','img_15','img_23'];
 (async () => {
   for (const name of GALLERY) {
     const p = `public/assets/raw/${name}.jpg`;
