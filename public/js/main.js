@@ -1,15 +1,21 @@
 /* 般若藏 · 首页逻辑 */
 const NUM = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 
-/* 陈列图库：仅收深色底、古代犍陀罗石雕（头像或完整全身像，与整体墨色融合），每次刷新随机轮换 */
+/* 陈列图库：仅收深色底、古代石雕单体造像（头像/半身/全身，与整体墨色融合），每次刷新随机轮换；展签按条目注明朝代与材质 */
 const GALLERY = [
-  'img_1',   // 黑底犍陀罗佛首 · 背光（头像）
-  'img_3',   // 深灰底菩萨立像（全身）
-  'img_6',   // 黑底犍陀罗佛首（头像）
-  'img_14',  // 黑底宝冠佛首（半身）
-  'img_15',  // 深灰底片岩佛坐像（全身）
-  'img_23',  // 深底片岩菩萨胸像（半身）
-].map(n => `/assets/raw/${n}.jpg`);
+  { id: 'img_1',  cn: '犍陀罗 · 片岩佛首',     en: 'Gandhāra Schist' },      // 黑底犍陀罗佛首 · 背光（头像）
+  { id: 'img_3',  cn: '犍陀罗 · 片岩菩萨立像', en: 'Gandhāra Schist' },      // 深灰底菩萨立像（全身）
+  { id: 'img_6',  cn: '犍陀罗 · 片岩佛首',     en: 'Gandhāra Schist' },      // 黑底犍陀罗佛首（头像）
+  { id: 'img_14', cn: '犍陀罗 · 片岩宝冠佛首', en: 'Gandhāra Schist' },      // 黑底宝冠佛首（半身）
+  { id: 'img_15', cn: '犍陀罗 · 片岩佛坐像',   en: 'Gandhāra Schist' },      // 深灰底片岩佛坐像（全身）
+  { id: 'img_23', cn: '犍陀罗 · 片岩菩萨胸像', en: 'Gandhāra Schist' },      // 深底片岩菩萨胸像（半身）
+  { id: 'img_24', cn: '北魏 · 石灰岩佛首',     en: 'Northern Wei Limestone' }, // 灰底石灰岩佛首（头像）
+  { id: 'img_25', cn: '北魏 · 砂岩立佛',       en: 'Northern Wei Sandstone' }, // 灰底燃灯佛立像 · 火焰背光（全身）
+  { id: 'img_26', cn: '北齐 · 石灰岩宝冠菩萨首', en: 'Northern Qi Limestone' }, // 暗灰底宝冠菩萨首（头像）
+  { id: 'img_27', cn: '北齐 · 石灰岩佛首',     en: 'Northern Qi Limestone' }, // 暗灰底佛首（头像）
+  { id: 'img_28', cn: '北齐 · 石灰岩菩萨首',   en: 'Northern Qi Limestone' }, // 灰绿底胁侍菩萨首（头像）
+  { id: 'img_29', cn: '北齐 · 汉白玉佛坐像',   en: 'Northern Qi Marble' },    // 暗底汉白玉佛坐像（全身）
+].map(g => ({ ...g, src: `/assets/raw/${g.id}.jpg` }));
 
 function pickThree() {
   const pool = [...GALLERY];
@@ -24,7 +30,7 @@ async function boot() {
   const res = await fetch('/api/sutras');
   const sutras = await res.json();
   const picks = pickThree();
-  sutras.forEach((s, i) => { s.image = picks[i]; });
+  sutras.forEach((s, i) => { s.img = picks[i]; });
 
   const box = document.getElementById('exhibits');
   const frag = document.createDocumentFragment();
@@ -35,8 +41,8 @@ async function boot() {
     el.innerHTML = `
       <figure class="exhibit-media">
         <span class="exhibit-no">No. ${NUM[i]} · ${s.sanskrit.split(' ')[0]}</span>
-        <img src="${s.image}" alt="${s.title} 造像" loading="lazy">
-        <figcaption class="exhibit-caption">犍陀罗造像 · 石刻<br>Gandhāra Schist</figcaption>
+        <img src="${s.img.src}" alt="${s.title} 造像" loading="lazy">
+        <figcaption class="exhibit-caption">${s.img.cn}<br>${s.img.en}</figcaption>
         <span class="exhibit-plinth"></span>
       </figure>
       <div class="exhibit-body">
