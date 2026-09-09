@@ -17,19 +17,19 @@ const GALLERY = [
   { id: 'img_29', cn: '北齐 · 汉白玉佛坐像',   en: 'Northern Qi Marble' },    // 暗底汉白玉佛坐像（全身）
 ].map(g => ({ ...g, src: `/assets/raw/${g.id}.jpg` }));
 
-function pickThree() {
+function pick(n) {
   const pool = [...GALLERY];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, 3);
+  return pool.slice(0, n);
 }
 
 async function boot() {
   const res = await fetch('/api/sutras');
   const sutras = await res.json();
-  const picks = pickThree();
+  const picks = pick(sutras.length);
   sutras.forEach((s, i) => { s.img = picks[i]; });
 
   const box = document.getElementById('exhibits');
@@ -51,7 +51,7 @@ async function boot() {
         <p class="exhibit-sanskrit">${s.sanskrit}</p>
         <div class="exhibit-meta">
           <span>译者 <b>${s.translator}</b></span>
-          <span>章节 <b>${s.chapterCount} ${s.id === 'xinjing' ? '卷' : '品/分'}</b></span>
+          <span>章节 <b>${s.chapterCount} ${['xinjing', 'lengqie'].includes(s.id) ? '卷' : '品/分'}</b></span>
           <span>字数 <b>${s.charCount.toLocaleString()}</b></span>
         </div>
         <p class="exhibit-desc">${s.desc}</p>

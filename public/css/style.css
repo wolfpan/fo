@@ -649,3 +649,20 @@ img { display: block; max-width: 100%; }
   .size-pop { right: 18px; }
   .epigraph { padding: 100px 20px 90px; }
 }
+
+/* ============ 关于 · 禅宗 ============ */
+.about-grid {
+  margin-top: 54px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+}
+.about-block { border-top: var(--hairline); padding-top: 36px; }
+.about-h {
+  font-family: var(--cao); font-weight: 400;
+  font-size: 22px; letter-spacing: .18em;
+  color: var(--gold); margin-bottom: 26px;
+}
+.about-p { font-size: 14.5px; line-height: 2.35; color: var(--paper-dim); }
+.about-p + .about-p { margin-top: 16px; }
+@media (max-width: 980px) {
+  .about-grid { grid-template-columns: 1fr; gap: 46px; }
+}

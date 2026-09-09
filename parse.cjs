@@ -48,3 +48,24 @@ for (let i = 0; i < 10; i++) {
 }
 fs.writeFileSync('data/raw/tanjing_parsed.json', JSON.stringify(tanjing, null, 1));
 console.log('坛经总字数:', tanjing.reduce((a, c) => a + c.paras.join('').length, 0));
+
+// ---------- 楞伽经 ----------
+// 每卷以「楞伽阿跋多羅寶經卷第N」起（卷一文件前附蒋之奇/苏轼两篇序，从卷题行截入），
+// 卷尾复现卷题一行，卷内另有译者行与品题行。
+const lqTitles = { '01': '卷第一', '02': '卷第二', '03': '卷第三', '04': '卷第四' };
+const lengqie = [];
+for (const f of Object.keys(lqTitles)) {
+  const lines = read(`lengqie_${f}.txt`);
+  const s = lines.findIndex(l => /^楞伽阿跋多羅寶經卷第[一二三四]$/.test(l));
+  const paras = lines.slice(s + 1)
+    .filter(l => !/^楞伽阿跋多羅寶經卷第/.test(l))
+    .filter(l => l !== '宋天竺三藏求那跋陀羅譯')
+    .filter(l => !/^一切佛語心品/.test(l))
+    .filter(l => !BAD.some(r => r.test(l)))
+    .map(T);
+  const pin = lines.find(l => /^一切佛語心品/.test(l));
+  lengqie.push({ title: T(pin), note: lqTitles[f], paras });
+  console.log('楞伽经', lqTitles[f], T(pin), paras.length, '段', paras.join('').length, '字');
+}
+fs.writeFileSync('data/raw/lengqie_parsed.json', JSON.stringify(lengqie, null, 1));
+console.log('楞伽经总字数:', lengqie.reduce((a, c) => a + c.paras.join('').length, 0));

@@ -3,6 +3,7 @@ const fs = require('fs');
 const jingang = JSON.parse(fs.readFileSync('data/raw/jingang_parsed.json', 'utf8'));
 const xinjing = JSON.parse(fs.readFileSync('data/raw/xinjing_parsed.json', 'utf8'));
 const tanjing = JSON.parse(fs.readFileSync('data/raw/tanjing_parsed.json', 'utf8'));
+const lengqie = JSON.parse(fs.readFileSync('data/raw/lengqie_parsed.json', 'utf8'));
 
 const sutras = [
   {
@@ -47,9 +48,23 @@ const sutras = [
     image: '/assets/raw/img_3.jpg',
     accent: '#9a7f6b',
   },
+  {
+    id: 'lengqie',
+    title: '楞伽阿跋多罗宝经',
+    shortTitle: '楞伽经',
+    sanskrit: 'Laṅkāvatāra Sūtra',
+    dynasty: '刘宋',
+    translator: '求那跋陀罗 译',
+    era: '公元 443 年',
+    desc: '禅门开山之典。达磨西来，以此经四卷印心；四卷记佛在楞伽山答大慧菩萨百八问，唱「诸法唯是自心所现」，说五法三自性、八识二无我。',
+    quote: '世间离生灭，犹如虚空华；智不得有无，而兴大悲心。',
+    chapters: lengqie,
+    image: '/assets/raw/img_24.jpg',
+    accent: '#7e8a96',
+  },
 ];
 
 fs.mkdirSync('data', { recursive: true });
 fs.writeFileSync('data/sutras.json', JSON.stringify(sutras, null, 1));
 const total = sutras.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.paras.join('').length, 0), 0);
-console.log('OK 三部经典装配完成，总字数', total);
+console.log('OK 四部经典装配完成，总字数', total);

@@ -51,7 +51,7 @@ function renderChapter(i) {
   state.cur = i;
   const isLast = i === s.chapters.length - 1;
   const isFirst = i === 0;
-  const unitWord = s.id === 'jingang' ? '分' : s.id === 'tanjing' ? '品' : '页';
+  const unitWord = { jingang: '分', tanjing: '品', xinjing: '卷', lengqie: '卷' }[s.id] || '页';
   // 竖排标点包裹，供 CSS 归位（句号等不再浮在字上方）
   const wrapPunc = t => t.replace(/([。，、；：！？」』])/g, '<span class="vp">$1</span>');
   const paper = $('paper');

@@ -26,7 +26,7 @@ function sendPage(res, file) {
   res.set('Content-Type', 'text/html; charset=utf-8').send(html);
 }
 
-// 三部经典元数据（不含正文，供目录页）
+// 四部经典元数据（不含正文，供目录页）
 app.get('/api/sutras', (req, res) => {
   res.json(sutras.map(({ id, title, shortTitle, sanskrit, dynasty, translator, era, desc, quote, chapters, image, accent }) => ({
     id, title, shortTitle, sanskrit, dynasty, translator, era, desc, quote, image, accent,
