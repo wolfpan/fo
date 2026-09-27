@@ -1,6 +1,6 @@
 # 般若藏 · The Prajña Gallery
 
-佛教禅宗经典阅读网站——以顶级美术馆之陈设，呈三部经典：**金刚经**、**般若波罗蜜多心经**、**六祖坛经**。深色、简约、禅意。
+佛教禅宗经典阅读网站——以顶级美术馆之陈设，呈四部经典：**般若波罗蜜多心经**、**金刚经**、**六祖坛经**、**楞伽经**。深色、简约、禅意。
 
 ![tech](https://img.shields.io/badge/Node.js-Express-green) ![fonts](https://img.shields.io/badge/字体-行书%20%2F%20正楷-blue)
 
@@ -24,7 +24,7 @@ npm start     # http://localhost:3000
 
 ```
 server.js            Express 服务 + 经典数据 API
-data/sutras.json     三部经典全文（build-data.cjs 装配）
+data/sutras.json     四部经典全文（build-data.cjs 装配）
 data/raw/            维基文库抓取与解析的中间产物
 public/              前端（首页、阅读页、梵音引擎、字体切换）
 scripts/             字体部署脚本

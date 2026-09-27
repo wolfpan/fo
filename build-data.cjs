@@ -14,7 +14,7 @@ const sutras = [
     dynasty: '唐',
     translator: '玄奘 奉诏译',
     era: '公元 649 年',
-    desc: '六百卷《大般若经》之精髓髓，二百六十字涵摄五蕴皆空之理，是流传最广的佛经短章。',
+    desc: '六百卷《大般若经》之精髓，二百六十字涵摄五蕴皆空之理，是流传最广的佛经短章。',
     quote: '色不异空，空不异色；色即是空，空即是色。',
     chapters: [{ title: '全一卷', note: '', paras: xinjing }],
     image: '/assets/raw/img_1.jpg',
