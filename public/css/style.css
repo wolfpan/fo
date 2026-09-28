@@ -563,6 +563,7 @@ img { display: block; max-width: 100%; }
   color: var(--gold-bright);
 }
 #fontToggle.tool-btn { font-family: var(--cao); font-size: 15px; }
+.audio-entry.tool-btn { font-family: var(--cao); font-size: 15px; }
 
 /* ============ 底部梵音控制条 ============ */
 #audioDock {

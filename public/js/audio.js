@@ -271,6 +271,28 @@
     render();
   }
 
+  /* ---------- 唤出入口：梵音条收起后，顶栏 / 阅读工具栏的「音」钮可调回 ---------- */
+  function toggleDock() {
+    const dock = document.getElementById('audioDock');
+    if (!dock) return;
+    if (dock.classList.contains('hide')) dock.classList.remove('hide');
+    else { stop(); dock.classList.add('hide'); }
+  }
+  function buildEntry() {
+    const mk = cls => {
+      const b = document.createElement('button');
+      b.className = cls + ' audio-entry';
+      b.title = '调出 / 收起梵音';
+      b.textContent = '音';
+      b.addEventListener('click', toggleDock);
+      return b;
+    };
+    const nav = document.querySelector('.topnav');
+    if (nav) nav.appendChild(mk('font-pill'));
+    const tools = document.querySelector('.reader-tools');
+    if (tools) tools.appendChild(mk('tool-btn'));
+  }
+
   function render() {
     const dock = document.getElementById('audioDock');
     if (!dock) return;
@@ -291,9 +313,10 @@
     }
   }
 
+  const boot = () => { buildDock(); buildEntry(); };
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', buildDock);
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    buildDock();
+    boot();
   }
 })();
