@@ -5,10 +5,10 @@
  */
 'use strict';
 const express = require('express');
-const { getConfig, ensureSchema, counts, warm } = require('./db.cjs');
+const { getConfig, ensureSchema, counts, warm, q } = require('./db.cjs');
 const { retrieve, retrieveChat, toCitations } = require('./retrieve.cjs');
-const { rewriteQuery, chatStream } = require('./providers.cjs');
-const { buildMessages } = require('./persona.cjs');
+const { rewriteQuery, chatStream, chatOnce } = require('./providers.cjs');
+const { buildMessages, kernel } = require('./persona.cjs');
 const { UUID_RE, readMemory, recallSummariesVec, extractAndWrite, getBook, burn } = require('./memory.cjs');
 
 const router = express.Router();
@@ -115,6 +115,72 @@ router.delete('/memory/:id', async (req, res) => {
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'invalid id' });
   try { const deleted = await burn(id); res.json({ ok: true, deleted }); }
   catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* ---------- M3 · 当机 / 埋点 / 报表 ---------- */
+
+/* 当机：回访者点亮灯，影先开口（承接旧话头）。无记忆则交由前端用默认问候。 */
+router.post('/open', async (req, res) => {
+  const sessionId = String(req.body.sessionId || '');
+  if (!UUID_RE.test(sessionId)) return res.status(400).json({ error: 'invalid sessionId' });
+  try {
+    await schemaOnce();
+    const base = await readMemory(sessionId);
+    if (!base.huatou && !base.profile) return res.json({ text: null });
+    let system = kernel();
+    system += `\n\n【参学簿】\n${base.profile || ''}\n${base.huatou ? '未参完的话头：' + base.huatou : ''}`;
+    system += '\n\n（系统：善知识点亮了灯，坐到你对面。灯下重逢，你先开口——只说一句，12~40字，'
+      + '自然承接旧话头或旧事（如「上回你问X，可曾参得」或依其所困相唤），仍是你的口吻。'
+      + '不说开场声明，不问安，不堆客套。）';
+    const text = (await chatOnce({
+      system, user: '（善知识点亮了灯，静静望着你。）', maxTokens: 120, temperature: 0.9,
+    })).trim();
+    res.json({ text: text || null, huatou: base.huatou || null });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* 埋点：聊→读转化与站点指标（白名单类型；meta 仅存章节级信息，无对话内容） */
+const EVENT_TYPES = new Set(['chat_ask', 'cited', 'cited_click', 'dangji_open']);
+router.post('/event', async (req, res) => {
+  const sessionId = String(req.body.sessionId || '');
+  const type = String(req.body.type || '');
+  if (!type || !EVENT_TYPES.has(type)) return res.status(400).json({ error: 'bad type' });
+  const meta = req.body.meta && typeof req.body.meta === 'object' ? req.body.meta : {};
+  try {
+    await schemaOnce();
+    await q('INSERT INTO zen_events (user_id, type, meta) VALUES ($1,$2,$3)',
+      [UUID_RE.test(sessionId) ? sessionId : null, type, JSON.stringify(meta)]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* 报表：聊→读转化与热点章节（站点聚合，无个人内容） */
+router.get('/stats', async (req, res) => {
+  try {
+    await schemaOnce();
+    const agg = (await q(`
+      SELECT count(*) FILTER (WHERE type='chat_ask')   AS asks,
+             count(*) FILTER (WHERE type='cited')      AS cited_asks,
+             count(*) FILTER (WHERE type='cited_click') AS clicks,
+             count(*) FILTER (WHERE type='dangji_open') AS dangji,
+             count(DISTINCT user_id) FILTER (WHERE type='chat_ask') AS users
+      FROM zen_events`)).rows[0];
+    const top = (await q(`
+      SELECT meta->>'sutra' AS sutra, meta->>'chapter' AS chapter, count(*) AS n
+      FROM zen_events WHERE type='cited_click'
+      GROUP BY 1,2 ORDER BY n DESC LIMIT 5`)).rows;
+    const toInt = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, +v]));
+    const a = toInt(agg);
+    res.json({
+      ok: true,
+      asks: a.asks, users: a.users, dangji: a.dangji,
+      cited_rate: a.asks ? +(a.cited_asks / a.asks).toFixed(3) : 0,          // 引出经证的比例
+      read_rate: a.cited_asks ? +(a.clicks / a.cited_asks).toFixed(3) : 0,   // 聊→读转化（核心指标）
+      top_chapters: top,
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;

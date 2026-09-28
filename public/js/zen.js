@@ -40,6 +40,7 @@
       <div class="zen-book-list" id="zenBookList"></div>
       <button class="zen-burn" id="zenBurn">焚 簿</button>
       <p class="zen-book-note">缘起性空，来时无痕。焚去后不可找回。</p>
+      <p class="zen-stats" id="zenStats" hidden></p>
     </div>
     <div class="zen-inputrow">
       <input id="zenInput" type="text" maxlength="500" placeholder="写下你的问题……" autocomplete="off">
@@ -56,9 +57,50 @@
   const history = []; // 最近 6 轮
   let busy = false, statusChecked = false;
   let remember = localStorage.getItem('fo-zen-remember') === '1'; // 记忆默认关闭
+  const greetEl = () => panel.querySelector('.zen-msg.first .zen-text');
+
+  /* ---------- 埋点（keepalive：跳转阅读页也不丢） ---------- */
+  const evt = (type, meta = {}) => fetch('/api/zen/event', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, type, meta }), keepalive: true,
+  }).catch(() => {});
+
+  /* ---------- 心印：首次点读经证，盖一枚印，此后不再 ---------- */
+  function awardSeal() {
+    if (localStorage.getItem('fo-zen-seal')) return;
+    localStorage.setItem('fo-zen-seal', '1');
+    const stamp = document.createElement('div');
+    stamp.className = 'zen-seal';
+    stamp.innerHTML = '<span>心印</span>';
+    panel.append(stamp);
+    setTimeout(() => stamp.classList.add('pressed'), 30);   // 落印
+    setTimeout(() => stamp.classList.add('settled'), 2000); // 收进题字旁
+    panel.querySelector('.zen-name').insertAdjacentHTML('afterend',
+      '<span class="zen-seal-mark" title="心印已契">印</span>');
+  }
+
+  /* ---------- 当机：回访者点灯，影先开口（每浏览器每小时至多一次） ---------- */
+  async function dangji() {
+    if (!remember || history.length) return;
+    const last = +(localStorage.getItem('fo-zen-dangji-at') || 0);
+    if (Date.now() - last < 3600e3) return;
+    try {
+      const r = await fetch('/api/zen/open', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      const j = await r.json();
+      if (j.text) {
+        localStorage.setItem('fo-zen-dangji-at', String(Date.now()));
+        const el = greetEl();
+        if (el) { el.style.opacity = 0; setTimeout(() => { el.textContent = j.text; el.style.transition = 'opacity 1.2s'; el.style.opacity = 1; }, 260); }
+        evt('dangji_open', {});
+      }
+    } catch { /* 静默 */ }
+  }
 
   /* ---------- 开合 ---------- */
-  const open = () => { panel.classList.add('open'); lamp.classList.add('hide'); setTimeout(() => input.focus(), 350); checkStatus(); syncRemember(); };
+  const open = () => { panel.classList.add('open'); lamp.classList.add('hide'); setTimeout(() => input.focus(), 350); checkStatus(); syncRemember(); dangji(); };
   const close = () => { panel.classList.remove('open'); lamp.classList.remove('hide'); bookPanel.hidden = true; };
   lamp.onclick = open; closeBtn.onclick = close;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('open')) close(); });
@@ -89,9 +131,20 @@
   };
   bookBtn.onclick = async () => {
     bookPanel.hidden = !bookPanel.hidden;
-    if (!bookPanel.hidden) await renderBook();
+    if (!bookPanel.hidden) { await renderBook(); renderStats(); }
   };
   panel.querySelector('#zenBookClose').onclick = () => { bookPanel.hidden = true; };
+  async function renderStats() { // 站点聊→读转化（聚合数，无个人内容）
+    const el = panel.querySelector('#zenStats');
+    try {
+      const j = await (await fetch('/api/zen/stats')).json();
+      if (!j.ok) throw new Error();
+      el.hidden = false;
+      el.textContent = j.asks
+        ? `本站共答 ${j.asks} 问 · 聊→读 ${Math.round(j.read_rate * 100)}% · 当机相唤 ${j.dangji} 次`
+        : '本站尚无问答。';
+    } catch { el.hidden = true; }
+  }
   async function renderBook() {
     bookList.innerHTML = '<p class="zen-book-empty">翻簿中……</p>';
     try {
@@ -166,6 +219,10 @@
       card.href = c.link;
       card.innerHTML = `<span class="zen-cite-src">《${c.sutra_title} · ${c.chapter}》</span><span class="zen-cite-text"></span><span class="zen-cite-go">入内观览 →</span>`;
       card.querySelector('.zen-cite-text').textContent = c.text;
+      card.addEventListener('click', () => {          // 聊→读转化：点击即埋点 + 首次盖心印
+        evt('cited_click', { sutra: c.sutra_title, chapter: c.chapter });
+        awardSeal();
+      });
       list.append(card);
     }
     fold.querySelector('summary').textContent = `◆ 经证 · ${list.children.length} 则（点开对读）`;
@@ -177,6 +234,7 @@
   async function ask(text) {
     busy = true; sendBtn.disabled = true;
     addUser(text);
+    evt('chat_ask', {});
     const msgEl = addMaster();
     const box = msgEl.querySelector('.zen-text');
     const stageText = msgEl.querySelector('.zen-stage-text');
@@ -209,6 +267,7 @@
           }
           else if (ev === 'cited' && j.citations) {
             if (stageText) stageText.textContent = `引得经文 ${j.citations.length} 则`;
+            evt('cited', { n: j.citations.length });
             addCitations(msgEl, j.citations);
           }
           else if (ev === 'token' && j.delta) {

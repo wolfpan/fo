@@ -838,3 +838,27 @@ img { display: block; max-width: 100%; }
 .zen-cites-fold summary:hover { color: var(--gold-bright); border-color: var(--gold-dim); }
 .zen-cites-fold[open] summary { color: var(--gold); border-color: rgba(179,146,95,.4); margin-bottom: 10px; }
 .zen-cites { display: grid; gap: 10px; }
+
+/* ============ AI说禅 · 心印与站点指标 ============ */
+.zen-seal {
+  position: absolute; top: 84px; right: 34px; z-index: 20;
+  width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--cinnabar); border-radius: 6px;
+  color: var(--cinnabar); font-family: var(--cao); font-size: 24px; letter-spacing: 4px;
+  transform: scale(2.2) rotate(-14deg); opacity: 0;
+  box-shadow: 0 0 0 1px rgba(158,59,44,.25);
+  pointer-events: none;
+}
+.zen-seal.pressed { transition: transform .5s cubic-bezier(.2,2.2,.4,1), opacity .3s; transform: scale(1) rotate(-7deg); opacity: .92; }
+.zen-seal.settled { transition: opacity 1.6s, transform 1.6s; opacity: 0; transform: scale(.6) rotate(-7deg) translateY(6px); }
+.zen-seal-mark {
+  display: inline-block; margin-left: 10px; padding: 1px 6px;
+  border: 1px solid rgba(158,59,44,.6); border-radius: 3px;
+  color: var(--cinnabar); font-family: var(--cao); font-size: 12px;
+  vertical-align: 4px; opacity: .85;
+}
+.zen-stats {
+  margin-top: 14px; padding-top: 10px; border-top: var(--hairline);
+  font-family: var(--ui); font-size: 10.5px; letter-spacing: .14em;
+  color: var(--paper-faint); text-align: center;
+}
