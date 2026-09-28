@@ -92,12 +92,25 @@ async function ensureSchema() {
   await pool().query(ddl);
 }
 
+/* 带一次重试的查询：Neon 冷启动与瞬时 TLS reset 不至于让整轮对话失败 */
+async function q(text, params, retry = 1) {
+  try {
+    return await pool().query(text, params);
+  } catch (e) {
+    if (retry > 0 && /ECONNRESET|socket|connection|terminating|timeout/i.test(e.message)) {
+      await new Promise(r => setTimeout(r, 500));
+      return q(text, params, retry - 1);
+    }
+    throw e;
+  }
+}
+
 async function counts() {
-  const r = await pool().query(`
+  const r = await q(`
     SELECT (SELECT count(*) FROM sutra_chunks) AS sutra,
            (SELECT count(*) FROM persona_kb)  AS persona,
            (SELECT count(*) FROM zen_memory)  AS memory`);
   return r.rows[0];
 }
 
-module.exports = { getConfig, pool, vec, ensureSchema, counts };
+module.exports = { getConfig, pool, q, vec, ensureSchema, counts };

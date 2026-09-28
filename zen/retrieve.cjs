@@ -1,6 +1,6 @@
 /* 般若藏 · AI说禅 —— 混合检索层（稠密 + 字面，RRF 融合） */
 'use strict';
-const { pool, vec } = require('./db.cjs');
+const { pool, q, vec } = require('./db.cjs');
 const { embedOne } = require('./embed.cjs');
 const { getConfig } = require('./db.cjs');
 
@@ -33,19 +33,19 @@ function rrfFuse(resultLists, take, maxPerGroup = 0) {
 }
 
 async function denseSutras(qvec, k, minScore) {
-  const r = await pool().query(
+  const r = await q(
     `SELECT id, sutra_id, chapter, chapter_idx, text, 1 - (embedding <=> $1) AS score
      FROM sutra_chunks WHERE 1 - (embedding <=> $1) > $3
      ORDER BY embedding <=> $1 LIMIT $2`, [vec(qvec), k, minScore]);
   return r.rows;
 }
 
-async function lexicalSutras(q, k) {
+async function lexicalSutras(query, k) {
   // 去标点后匹配：经文含「应无所住，而生其心」类句内标点，全串 ILIKE 会被打断；
   // 故同时匹配原文与去标点文本（库仅 256 块，正则全扫无压力）
-  const clean = q.replace(/[^\p{Script=Han}A-Za-z0-9]/gu, '');
+  const clean = query.replace(/[^\p{Script=Han}A-Za-z0-9]/gu, '');
   if (clean.length < 3) return [];
-  const r = await pool().query(
+  const r = await q(
     `SELECT id, sutra_id, chapter, chapter_idx, text, 0.5 AS score, 1 AS lex
      FROM sutra_chunks
      WHERE text ILIKE '%' || $1 || '%'
@@ -55,7 +55,7 @@ async function lexicalSutras(q, k) {
 }
 
 async function densePersona(qvec, k) {
-  const r = await pool().query(
+  const r = await q(
     `SELECT id, kind, topic, text, source, 1 - (embedding <=> $1) AS score
      FROM persona_kb ORDER BY embedding <=> $1 LIMIT $2`, [vec(qvec), k]);
   return r.rows;

@@ -9,6 +9,7 @@ const { getConfig, ensureSchema, counts } = require('./db.cjs');
 const { retrieve, toCitations } = require('./retrieve.cjs');
 const { rewriteQuery, chatStream } = require('./providers.cjs');
 const { buildMessages } = require('./persona.cjs');
+const { UUID_RE, readMemory, recallSummaries, extractAndWrite, getBook, burn } = require('./memory.cjs');
 
 const router = express.Router();
 let _schemaReady = null;
@@ -43,6 +44,8 @@ router.post('/chat', async (req, res) => {
   const message = String(req.body.message || '').trim().slice(0, 500);
   const history = Array.isArray(req.body.history) ? req.body.history : [];
   const first = !history.length;
+  // 记忆默认关闭：仅显式 remember 且无记名帖合法时读写参学簿
+  const remember = req.body.remember === true && UUID_RE.test(sessionId);
   if (!message) return res.status(400).json({ error: 'missing message' });
 
   res.writeHead(200, {
@@ -62,18 +65,53 @@ router.post('/chat', async (req, res) => {
     const citations = toCitations(r.sutras);
     if (citations.length) send('cited', { citations }); // 卡片先推，前端先渲染
 
+    // ①′ 参学簿（remember 开启时）：画像+话头必带，历史摘要语义召回
+    let memory = null;
+    if (remember) {
+      try {
+        const base = await readMemory(sessionId);
+        const recalls = await recallSummaries(sessionId, message).catch(() => []);
+        memory = { ...base, recalls };
+      } catch (e) { /* 记忆读取失败不阻断对话 */ }
+    }
+
     // ② 组装 prompt（缓存稳定顺序）并流式作答
-    const messages = buildMessages({ first, citations, persona: r.persona, history, question: message });
+    const messages = buildMessages({ first, citations, persona: r.persona, history, memory, question: message });
+    let answer = '';
     await chatStream({
       messages,
-      onDelta: delta => send('token', { delta }),
+      onDelta: delta => { answer += delta; send('token', { delta }); },
     });
     send('done', {});
 
+    // ③ 落簿（异步提取，成功则推送话头回显；失败静默）
+    if (remember) {
+      try {
+        const row = await extractAndWrite({ userId: sessionId, question: message, answer });
+        if (row && row.huatou) send('huatou', { huatou: row.huatou });
+      } catch { /* 下轮再记 */ }
+    }
   } catch (e) {
     send('error', { message: e.message });
   } finally {
     res.end();
   }
 });
+
+/* 参学簿：透明查看 */
+router.get('/memory/:id', async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: 'invalid id' });
+  try { res.json({ ok: true, rows: await getBook(id) }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* 焚簿：全删无残留 */
+router.delete('/memory/:id', async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: 'invalid id' });
+  try { const deleted = await burn(id); res.json({ ok: true, deleted }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

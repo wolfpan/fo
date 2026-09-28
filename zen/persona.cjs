@@ -28,10 +28,12 @@ function buildMessages({ first, citations, persona, history, memory, question })
 
   // —— 半静态段（同一用户会话内稳定，放前）——
   if (first) system += '\n\n（本轮是与这位善知识的第一轮对话：先按规则说一次开场语，此后不再说。）';
-  if (memory && (memory.huatou || memory.profile)) {
+  const mem = memory || {};
+  if (mem.huatou || mem.profile || (mem.recalls && mem.recalls.length)) {
     system += '\n\n【参学簿】';
-    if (memory.profile) system += `\n${memory.profile}`;
-    if (memory.huatou) system += `\n未参完的话头：${memory.huatou}`;
+    if (mem.profile) system += `\n${mem.profile}`;
+    if (mem.huatou) system += `\n未参完的话头：${mem.huatou}`;
+    if (mem.recalls && mem.recalls.length) system += `\n过往问答要点：\n${mem.recalls.map(t => `- ${t}`).join('\n')}`;
     system += '\n（自然承接即可，不复述明细。）';
   }
 

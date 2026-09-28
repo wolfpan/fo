@@ -757,3 +757,55 @@ img { display: block; max-width: 100%; }
   #zenLamp { right: 16px; bottom: 20px; width: 54px; height: 54px; }
   .zen-lamp-char { font-size: 26px; }
 }
+
+/* ============ AI说禅 · 参学簿 ============ */
+.zen-head-tools { display: flex; align-items: center; gap: 6px; }
+.zen-tool {
+  background: none; border: 1px solid rgba(179,146,95,.28); border-radius: 50%;
+  width: 34px; height: 34px; color: var(--paper-faint); cursor: pointer;
+  font-family: var(--cao); font-size: 16px; line-height: 1;
+  transition: color .3s, border-color .3s, background .3s;
+}
+.zen-tool:hover { color: var(--paper); border-color: var(--gold-dim); }
+.zen-tool.on { color: var(--gold-bright); border-color: var(--gold); background: rgba(179,146,95,.12); }
+.zen-huatou {
+  font-family: var(--ui); font-size: 11.5px; letter-spacing: .08em;
+  color: var(--gold-dim); padding: 2px 2px 4px; margin-top: -8px;
+}
+.zen-book {
+  position: absolute; inset: 0; z-index: 5; overflow: hidden;
+  background: linear-gradient(180deg, #14110e 0%, var(--ink-2) 100%);
+  padding: 26px 24px 20px; display: flex; flex-direction: column;
+}
+/* hidden 属性会被上面的 display:flex 覆盖，必须显式恢复 */
+.zen-book[hidden] { display: none; }
+.zen-book-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--cao); font-size: 20px; letter-spacing: .2em; color: var(--gold);
+  margin-bottom: 16px; padding-right: 6px; flex: none;
+}
+.zen-book-count { font-family: var(--ui); font-size: 11px; color: var(--paper-faint); letter-spacing: .1em; }
+.zen-book-close {
+  background: none; border: 1px solid rgba(179,146,95,.3); border-radius: 2px;
+  color: var(--paper-dim); font-family: var(--ui); font-size: 12px; letter-spacing: .18em;
+  padding: 5px 12px; cursor: pointer; transition: color .3s, border-color .3s;
+}
+.zen-book-close:hover { color: var(--gold-bright); border-color: var(--gold); }
+.zen-book-list { flex: 1; overflow-y: auto; display: grid; gap: 10px; align-content: start; padding-right: 4px; }
+.zen-book-row {
+  border-left: 2px solid var(--gold-dim); padding: 8px 12px;
+  background: rgba(179,146,95,.05); display: flex; gap: 10px; align-items: baseline;
+}
+.zen-book-kind { font-family: var(--ui); font-size: 10px; letter-spacing: .2em; color: var(--gold); flex: none; }
+.zen-book-text { font-size: 12.5px; line-height: 1.9; color: var(--paper-dim); }
+.zen-book-empty, .zen-book-burned { font-size: 13px; color: var(--paper-faint); font-family: var(--xing); padding: 8px 0; }
+.zen-book-burned { color: var(--cinnabar); }
+.zen-burn {
+  margin-top: 18px; padding: 10px 0; width: 100%;
+  background: none; border: 1px solid rgba(158,59,44,.55); border-radius: 2px;
+  color: var(--cinnabar); font-family: var(--cao); font-size: 16px; letter-spacing: .3em;
+  cursor: pointer; transition: background .3s, border-color .3s;
+}
+.zen-burn:hover:not(:disabled) { background: rgba(158,59,44,.12); border-color: var(--cinnabar); }
+.zen-burn:disabled { opacity: .55; cursor: default; }
+.zen-book-note { font-size: 10.5px; color: var(--paper-faint); text-align: center; margin-top: 10px; letter-spacing: .12em; }
