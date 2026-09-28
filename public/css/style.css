@@ -867,7 +867,11 @@ img { display: block; max-width: 100%; }
 /* 问禅面板压过禅音条（300），开面板时禅音条自动滑走（见 zen.js） */
 #zenPanel { z-index: 310; }
 #audioDock.zen-away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
-/* 窄屏：禅灯抬到禅音条上方——右下角两控件垂直分区，禅音条宽度再宽也不可能撞 */
+/* 窄屏：禅音条与禅灯同排贴底——音条左锚定并向右留出灯钮区（灯钮视觉左缘约在 77px），
+   底边一律 14px 对齐；隐藏动画改纯竖移（不再依赖居中的 -50% 位移） */
 @media (max-width: 980px) {
-  #zenLamp { bottom: 92px; }
+  #audioDock { left: 12px; right: 96px; bottom: 14px; transform: none; max-width: none; }
+  #audioDock.hide,
+  #audioDock.zen-away { transform: translateY(140%); }
+  #zenLamp { right: 16px; bottom: 14px; width: 54px; height: 54px; }
 }
