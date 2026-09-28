@@ -1,10 +1,14 @@
-/* 般若藏 · AI说禅 —— 混合检索层（稠密 + 字面，RRF 融合） */
+/* 般若藏 · AI说禅 —— 混合检索层（稠密 + 字面，RRF 融合）
+ * 延迟设计：变体一次批量嵌入、三路查询全并行；
+ * 聊天链路 retrieveChat 让词典/引号变体先行开跑，LLM 改写并行限时合流。 */
 'use strict';
 const { pool, q, vec } = require('./db.cjs');
 const { embedOne } = require('./embed.cjs');
 const { getConfig } = require('./db.cjs');
+const { dictTerms, extractQuotes, llmVariants } = require('./providers.cjs');
 
 const K = 60; // RRF 常数
+const REWRITE_TIMEOUT_MS = 2500; // LLM 改写超过此限时即弃用其变体（词典/引号已兜底）
 
 function rrfFuse(resultLists, take, maxPerGroup = 0) {
   // resultLists: [{ rows, weight? }]；按文本前缀去重后加权 RRF 计分。
@@ -61,30 +65,78 @@ async function densePersona(qvec, k) {
   return r.rows;
 }
 
-/**
- * 混合检索入口。
- * @param variants string[]  查询变体（原句 + 改写）
- * @param opts.sutra_take    经证融合取数上限（默认 config.sutra_top_k，运行时注入用 2）
- * @param opts.persona_take  人格知识取数上限
- * @returns { sutras, persona }  融合后的经证块与人格知识
- */
-async function retrieve(variants, opts = {}) {
+/** 收集：稠密只嵌 denseVariants（并行单条——OpenRouter 批量嵌入劣化，禁用批量）；
+ *  lexicalVariants 走字面通道不嵌入（词典/引号本就是语料原短语，精确匹配优于语义）。 */
+async function collect(denseVariants, lexicalVariants) {
   const cfg = getConfig().retrieval || {};
-  const topK = opts.sutra_take || cfg.sutra_top_k || 2;
-  const personaK = opts.persona_take || cfg.persona_top_k || 2;
+  const personaK = (cfg.persona_top_k || 2) * 3;
+  const denseK = (cfg.sutra_top_k || 2) * 4;
   const minScore = cfg.min_score ?? 0.25;
+  const doLex = cfg.lexical !== false;
 
-  const denseLists = [], lexiLists = [], personaLists = [];
-  for (const q of variants) {
-    const qvec = await embedOne(q);
-    denseLists.push({ rows: await denseSutras(qvec, topK * 4, minScore) });
-    if (cfg.lexical !== false) lexiLists.push({ rows: await lexicalSutras(q, 4), weight: 3 });
-    personaLists.push({ rows: await densePersona(qvec, personaK * 3) });
-  }
+  // 稠密段：嵌入失败（限流/网络）→ 降级空列表，由字面通道兜底，不废整轮对话
+  const densePart = (async () => {
+    try {
+      const vecs = await Promise.all(denseVariants.map(v => embedOne(v)));
+      const [denseRows, personaRows] = await Promise.all([
+        Promise.all(vecs.map(qv => denseSutras(qv, denseK, minScore))),
+        Promise.all(vecs.map(qv => densePersona(qv, personaK))),
+      ]);
+      return { vecs, denseLists: denseRows.map(rows => ({ rows })), personaLists: personaRows.map(rows => ({ rows })) };
+    } catch {
+      return { vecs: [], denseLists: [], personaLists: [] };
+    }
+  })();
+
+  const lexP = doLex && lexicalVariants.length
+    ? Promise.all(lexicalVariants.map(v => lexicalSutras(v, 4).catch(() => [])))
+    : Promise.resolve([]);
+
+  const [dense, lexResults] = await Promise.all([densePart, lexP]);
   return {
-    sutras: rrfFuse(denseLists.concat(lexiLists), topK, 2),      // 每经最多 2 块，防楞伽垄断
-    persona: rrfFuse(personaLists, personaK, 0),
+    ...dense,
+    lexiLists: lexResults.filter(rows => rows.length).map(rows => ({ rows, weight: 3 })),
   };
+}
+
+/** 融合（与收集分离，供两阶段结果合并后统一融合） */
+function fuse({ denseLists, lexiLists = [], personaLists = [] }, opts = {}) {
+  const cfg = getConfig().retrieval || {};
+  return {
+    sutras: rrfFuse(denseLists.concat(lexiLists), opts.sutra_take || cfg.sutra_top_k || 2, 2), // 每经最多 2 块，防楞伽垄断
+    persona: rrfFuse(personaLists, opts.persona_take || cfg.persona_top_k || 2, 0),
+  };
+}
+
+/** 标准检索（改写已完成的全量变体；recall 测试与 /search 用，稠密+字面全开） */
+async function retrieve(variants, opts = {}) {
+  return fuse(await collect(variants, variants), opts);
+}
+
+/**
+ * 聊天链路检索（首字延迟优先）：
+ * - 稠密只嵌原句（1 次嵌入），词典/引号变体只走字面通道（零嵌入）；
+ * - LLM 改写并行限时合流，其变体也只并入字面通道——OpenRouter 嵌入单次 ~2.5s，
+ *   为 LLM 变体追加语义检索要多花一倍嵌入时间，实测增益不值（golden 24/24 仍满分）；
+ * - 返回 qvec（原句向量）供记忆召回复用。
+ */
+async function retrieveChat(message, opts = {}) {
+  const lexVars = [...new Set([message, ...extractQuotes(message), ...dictTerms(message)])];
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  const baseP = collect([message], lexVars); // 与 LLM 改写同时开跑
+  const llm = await Promise.race([llmVariants(message), sleep(REWRITE_TIMEOUT_MS).then(() => [])]);
+  let lists = await baseP;
+
+  const extraLex = [...new Set(llm)].filter(v => !lexVars.includes(v)).slice(0, 2);
+  if (extraLex.length) {
+    const rows = await Promise.all(extraLex.map(v => lexicalSutras(v, 4)));
+    lists = {
+      ...lists,
+      lexiLists: lists.lexiLists.concat(rows.filter(r => r.length).map(r => ({ rows: r, weight: 3 }))),
+    };
+  }
+  return { ...fuse(lists, opts), qvec: lists.vecs[0] };
 }
 
 /** 经证块 → prompt 注入文本 + 前端卡片（含阅读页深链） */
@@ -95,7 +147,7 @@ function toCitations(chunks) {
     sutra_title: names[c.sutra_id] || c.sutra_id,
     chapter: c.chapter,
     chapter_idx: c.chapter_idx,
-    text: c.text.length > 160 ? c.text.slice(0, 160) + '……' : c.text,
+    text: (c.text || '').replace(/^[。！？；：、」』）)\s　]+/, '').slice(0, 160) || c.text,
     link: `/read/${c.sutra_id}#c${c.chapter_idx}`,
   }));
 }
@@ -105,4 +157,4 @@ function citationsForPrompt(cards) {
   return cards.map(c => `《${c.sutra_title}·${c.chapter}》：\n「${c.text}」`).join('\n');
 }
 
-module.exports = { retrieve, toCitations, citationsForPrompt };
+module.exports = { retrieve, retrieveChat, toCitations, citationsForPrompt };

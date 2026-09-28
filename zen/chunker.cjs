@@ -40,7 +40,8 @@ function splitLongPara(para) {
   for (const s of sentences) {
     if (acc && acc.length + s.length > WINDOW) {
       out.push(acc);
-      const last = acc.split(/(?=[。！？；])/).pop();
+      // 末句作重叠尾巴：剥去随分割带入的开头句读（「X。Y」按句切的尾段是「。Y」）
+      const last = acc.split(/(?=[。！？；])/).pop().replace(/^[。！？；：、」』）)\s　]+/, '');
       acc = last.length < 80 ? last : '';
     }
     acc += s;
@@ -61,8 +62,8 @@ function chunkSutras(sutras) {
           sutra_id: s.id, chapter: c.title, chapter_idx: ci, para_idx: paraIdx,
           text: acc.trim(), tags: autoTags(acc),
         });
-        const last = acc.split(/(?=[。！？；])/).pop();
-        acc = last.length < 80 ? last : ''; // 重叠一句
+        const last = acc.split(/(?=[。！？；])/).pop().replace(/^[。！？；：、」』）)\s　]+/, '');
+        acc = last.length < 80 ? last : ''; // 重叠一句（剥离带入的开头句读）
       };
       for (const p of c.paras) {
         const pieces = p.length > WINDOW ? splitLongPara(p) : [p];

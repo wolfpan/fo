@@ -26,14 +26,18 @@ async function readMemory(userId) {
   return { huatou: get('huatou'), profile: get('profile') };
 }
 
-/** 按本轮问题语义召回历史问答摘要 */
-async function recallSummaries(userId, question) {
-  const qvec = vec(await embedOne(question));
+/** 按向量召回历史问答摘要（聊天链路复用检索阶段已算好的原句向量，免重复嵌入） */
+async function recallSummariesVec(userId, qvec) {
   const r = await q(
     `SELECT text FROM zen_memory
      WHERE user_id = $1 AND kind = 'qa-summary'
-     ORDER BY embedding <=> $2 LIMIT $3`, [userId, qvec, RECALL_K]);
+     ORDER BY embedding <=> $2 LIMIT $3`, [userId, Array.isArray(qvec) ? vec(qvec) : qvec, RECALL_K]);
   return r.rows.map(x => x.text);
+}
+
+/** 按问题文本召回（独立调用方使用；内部自带一次嵌入） */
+async function recallSummaries(userId, question) {
+  return recallSummariesVec(userId, await embedOne(question));
 }
 
 /** 本轮答毕后异步落簿：LLM 提取 {huatou, profile, summary} → upsert + 追加 */
@@ -113,4 +117,4 @@ async function burn(userId) {
   return r.rows.length;
 }
 
-module.exports = { UUID_RE, readMemory, recallSummaries, extractAndWrite, getBook, burn, MAX_SUMMARIES };
+module.exports = { UUID_RE, readMemory, recallSummaries, recallSummariesVec, extractAndWrite, getBook, burn, MAX_SUMMARIES };

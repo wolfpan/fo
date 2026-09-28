@@ -135,22 +135,40 @@
   function addMaster() {
     const el = document.createElement('div');
     el.className = 'zen-msg master';
-    el.innerHTML = '<span class="zen-who">曹溪影</span><div class="zen-text zen-streaming"><span class="zen-caret"></span></div>';
+    el.innerHTML = `<span class="zen-who">曹溪影</span>
+      <div class="zen-stage" id="zenStage"><span class="zen-stage-dots"><i></i><i></i><i></i></span><span class="zen-stage-text">点灯</span><span class="zen-stage-time">0s</span></div>
+      <div class="zen-text zen-streaming" hidden><span class="zen-caret"></span></div>`;
     body.append(el); scroll();
-    return el.querySelector('.zen-text');
+    const t0 = Date.now();
+    const timeEl = el.querySelector('.zen-stage-time');
+    const timer = setInterval(() => { timeEl.textContent = Math.round((Date.now() - t0) / 1000) + 's'; }, 1000);
+    el._clearStage = () => {
+      clearInterval(timer);
+      const st = el.querySelector('#zenStage');
+      if (st) st.remove();
+      el.querySelector('.zen-text').hidden = false;
+    };
+    return el;
   }
-  function addCitations(box, citations) {
-    const wrap = document.createElement('div');
-    wrap.className = 'zen-cites';
+  /* 经证折叠栏：置于回答末尾，点开方见 */
+  function addCitations(msgEl, citations) {
+    let fold = msgEl.querySelector('.zen-cites-fold');
+    if (!fold) {
+      fold = document.createElement('details');
+      fold.className = 'zen-cites-fold';
+      fold.innerHTML = '<summary></summary><div class="zen-cites"></div>';
+      msgEl.append(fold); // 末尾（话头行之后）
+    }
+    const list = fold.querySelector('.zen-cites');
     for (const c of citations) {
       const card = document.createElement('a');
       card.className = 'zen-cite';
       card.href = c.link;
       card.innerHTML = `<span class="zen-cite-src">《${c.sutra_title} · ${c.chapter}》</span><span class="zen-cite-text"></span><span class="zen-cite-go">入内观览 →</span>`;
       card.querySelector('.zen-cite-text').textContent = c.text;
-      wrap.append(card);
+      list.append(card);
     }
-    box.parentElement.insertBefore(wrap, box);
+    fold.querySelector('summary').textContent = `◆ 经证 · ${list.children.length} 则（点开对读）`;
     scroll();
   }
   const scroll = () => body.scrollTo({ top: body.scrollHeight, behavior: 'smooth' });
@@ -159,8 +177,11 @@
   async function ask(text) {
     busy = true; sendBtn.disabled = true;
     addUser(text);
-    const box = addMaster();
-    let masterText = '';
+    const msgEl = addMaster();
+    const box = msgEl.querySelector('.zen-text');
+    const stageText = msgEl.querySelector('.zen-stage-text');
+    let masterText = '', stageCleared = false;
+    const clearStage = () => { if (!stageCleared) { stageCleared = true; msgEl._clearStage(); } };
     try {
       const res = await fetch('/api/zen/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -183,26 +204,36 @@
           }
           if (!data) continue;
           let j; try { j = JSON.parse(data); } catch { continue; }
-          if (ev === 'cited' && j.citations) addCitations(box, j.citations);
+          if (ev === 'stage' && j.text) {
+            if (stageText) stageText.textContent = j.text;
+          }
+          else if (ev === 'cited' && j.citations) {
+            if (stageText) stageText.textContent = `引得经文 ${j.citations.length} 则`;
+            addCitations(msgEl, j.citations);
+          }
           else if (ev === 'token' && j.delta) {
+            clearStage(); // 首字已到，进度行退场
             masterText += j.delta;
             box.textContent = masterText;
             box.classList.add('zen-streaming');
             scroll();
           }
+          else if (ev === 'done') clearStage();
           else if (ev === 'huatou' && j.huatou) {
             const h = document.createElement('div');
             h.className = 'zen-huatou'; h.textContent = `〔话头 · 已记〕${j.huatou}`;
             box.parentElement.insertBefore(h, box.nextSibling);
             scroll();
           }
-          else if (ev === 'error') { masterText += `\n（灯焰晃了一下：${j.message}）`; box.textContent = masterText; }
+          else if (ev === 'error') { clearStage(); masterText += `\n（灯焰晃了一下：${j.message}）`; box.textContent = masterText; }
         }
       }
       history.push({ role: 'user', content: text }, { role: 'assistant', content: masterText });
     } catch (e) {
+      clearStage();
       box.textContent = masterText || `（灯灭了：${e.message}）`;
     } finally {
+      clearStage();
       box.classList.remove('zen-streaming');
       busy = false; sendBtn.disabled = false; input.focus();
     }

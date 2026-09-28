@@ -64,6 +64,7 @@ async function chatOnce({ system, user, maxTokens = 200, temperature = 0.3 }) {
  * 术语取语料中的完整短语（≥3字），配合检索端的去标点字面匹配可精确命中。 */
 const ZH_TERM_MAP = [
   [/放不下|抓住|执着|执念/, ['应无所住', '住着']],
+  [/真的|假的|分辨|可信|可靠|表象/, ['凡所有相', '若见诸相非相']],
   [/静不下|心乱|杂念|走神|胡思乱想|妄念/, ['摄心', '妄念']],
   [/烦恼|焦虑|压力|烦躁/, ['尘劳', '烦恼即菩提']],
   [/辞掉|躲|逃离|远离|归隐|出世|红尘/, ['佛法在世间', '离世觅菩提']],
@@ -93,26 +94,32 @@ function dictTerms(question) {
   return out;
 }
 
-/**
- * 查询改写：白话原句 → 检索变体（LLM 改写 + 词典兜底），缓解白话↔古文跨语域。
- * LLM 失败时词典仍能提供变体。
- */
-async function rewriteQuery(question) {
+/** 引号内文提取：用户引原句时（如「应无所住而生其心」是什么意思），引内文是最强检索变体 */
+function extractQuotes(question) {
+  return [...question.matchAll(/[「『“"]([^」』”"]{3,40})[」』”"]/g)].map(m => m[1]);
+}
+
+/** LLM 改写部分（异步、可独立并行）。失败返回 []，由词典/引号兜底。 */
+async function llmVariants(question) {
   const system = `你是佛教经典检索的查询改写器。把用户的现代白话问题改写为 2 个用于检索古文经文的变体：
 1. 一个古文/半文言倾向的转述（用禅宗常用语汇，如：烦恼→尘劳/心迷；静不下心→心乱/摄心/妄念；放不下→执取/住着）；
 2. 一个抽取核心概念词的短语（3-8字，如「无住生心」「自性清净」）。
 只输出一个 JSON 数组，含且仅含这 2 个字符串，不要解释。`;
-  let llmVariants = [];
   try {
     const raw = await chatOnce({ system, user: question, maxTokens: 150 });
     const m = raw.match(/\[[\s\S]*\]/);
-    llmVariants = (JSON.parse(m[0])).filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 2);
-  } catch { /* 词典兜底 */ }
-  // 用户引用原句时（如「应无所住而生其心」是什么意思），引号内文是最强检索变体
-  const quotes = [...question.matchAll(/[「『“"]([^」』”"]{3,40})[」』”"]/g)].map(m => m[1]);
-  // 词典词精度最高（语料原短语），排在 LLM 变体之前，防止被上限截断
-  const all = [question, ...quotes, ...dictTerms(question), ...llmVariants];
+    return JSON.parse(m[0]).filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 2);
+  } catch { return []; }
+}
+
+/**
+ * 查询改写（全量同步版）：白话原句 → 检索变体（引号 + 词典 + LLM）。
+ * 供 recall 测试与 /search 调试；聊天链路请用 retrieve.cjs 的 retrieveChat（两阶段并行）。
+ */
+async function rewriteQuery(question) {
+  const llm = await llmVariants(question);
+  const all = [question, ...extractQuotes(question), ...dictTerms(question), ...llm];
   return [...new Set(all)].slice(0, 5);
 }
 
-module.exports = { chatStream, chatOnce, rewriteQuery };
+module.exports = { chatStream, chatOnce, rewriteQuery, llmVariants, dictTerms, extractQuotes };

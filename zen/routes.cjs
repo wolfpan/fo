@@ -5,11 +5,11 @@
  */
 'use strict';
 const express = require('express');
-const { getConfig, ensureSchema, counts } = require('./db.cjs');
-const { retrieve, toCitations } = require('./retrieve.cjs');
+const { getConfig, ensureSchema, counts, warm } = require('./db.cjs');
+const { retrieve, retrieveChat, toCitations } = require('./retrieve.cjs');
 const { rewriteQuery, chatStream } = require('./providers.cjs');
 const { buildMessages } = require('./persona.cjs');
-const { UUID_RE, readMemory, recallSummaries, extractAndWrite, getBook, burn } = require('./memory.cjs');
+const { UUID_RE, readMemory, recallSummariesVec, extractAndWrite, getBook, burn } = require('./memory.cjs');
 
 const router = express.Router();
 let _schemaReady = null;
@@ -59,23 +59,26 @@ router.post('/chat', async (req, res) => {
   try {
     await schemaOnce();
 
-    // ① 检索（改写 → 嵌入 → 混合检索）
-    const variants = await rewriteQuery(message);
-    const r = await retrieve(variants);
+    // ① 检索与记忆并行：池预热即发射；词典/引号变体先开跑，LLM 改写限时合流（retrieveChat）
+    send('stage', { stage: 'seek', text: '翻检经卷' }); // 真实进度：检索阶段开始
+    warm();
+    const memBaseP = remember ? readMemory(sessionId).catch(() => null) : Promise.resolve(null);
+    const r = await retrieveChat(message);
     const citations = toCitations(r.sutras);
     if (citations.length) send('cited', { citations }); // 卡片先推，前端先渲染
 
-    // ①′ 参学簿（remember 开启时）：画像+话头必带，历史摘要语义召回
+    // ①′ 参学簿：画像+话头已在检索期间并行读好；摘要召回复用检索算好的原句向量
     let memory = null;
     if (remember) {
-      try {
-        const base = await readMemory(sessionId);
-        const recalls = await recallSummaries(sessionId, message).catch(() => []);
+      const base = await memBaseP;
+      if (base && (base.huatou || base.profile)) {
+        const recalls = r.qvec ? await recallSummariesVec(sessionId, r.qvec).catch(() => []) : []; // 嵌入降级时无向量，跳过
         memory = { ...base, recalls };
-      } catch (e) { /* 记忆读取失败不阻断对话 */ }
+      }
     }
 
     // ② 组装 prompt（缓存稳定顺序）并流式作答
+    send('stage', { stage: 'compose', text: '落墨' }); // 检索完毕，模型开始作答
     const messages = buildMessages({ first, citations, persona: r.persona, history, memory, question: message });
     let answer = '';
     await chatStream({

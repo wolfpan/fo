@@ -113,4 +113,7 @@ async function counts() {
   return r.rows[0];
 }
 
-module.exports = { getConfig, pool, q, vec, ensureSchema, counts };
+/* 连接池预热：请求到达即发射、不等待——让 Neon 冷启动/建连与检索准备并行 */
+const warm = () => q('SELECT 1').catch(() => {});
+
+module.exports = { getConfig, pool, q, vec, ensureSchema, counts, warm };
