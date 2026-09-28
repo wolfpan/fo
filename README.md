@@ -2,7 +2,7 @@
 
 佛教禅宗经典阅读网站。以美术馆之陈设，呈四部经典；深色、留白、行书、竖排，如对古本。
 
-![tech](https://img.shields.io/badge/Node.js-Express-green) ![fonts](https://img.shields.io/badge/字体-行书%20%2F%20正楷-blue)
+![tech](https://img.shields.io/badge/Node.js-Express-green) ![fonts](https://img.shields.io/badge/字体-行书%20%2F%20正楷-blue) ![license](https://img.shields.io/badge/license-MIT-blue)
 
 ---
 
@@ -22,6 +22,8 @@
 | 楞伽阿跋多罗宝经 | 刘宋 · 求那跋陀罗（T670） | 达磨印心之典，禅宗开山之源 |
 
 建站之愿：不做另一个「佛经网站」，而做一座**美术馆**——藏品是经，展签是注，光影是禅意。让读经如观展，一步一龛，一龛一经。
+
+网站目的，六字而已：**传法、解悟、利生**。本站代码以 MIT 协议开源，经文本属公版——愿此皆同法施，取用无碍。
 
 ### 前端结构
 
