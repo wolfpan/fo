@@ -99,9 +99,10 @@
     } catch { /* 静默 */ }
   }
 
-  /* ---------- 开合 ---------- */
-  const open = () => { panel.classList.add('open'); lamp.classList.add('hide'); setTimeout(() => input.focus(), 350); checkStatus(); syncRemember(); dangji(); };
-  const close = () => { panel.classList.remove('open'); lamp.classList.remove('hide'); bookPanel.hidden = true; };
+  /* ---------- 开合（禅音条联动避让：面板开则滑走，面板关则归来） ---------- */
+  const audioDock = () => document.getElementById('audioDock');
+  const open = () => { panel.classList.add('open'); lamp.classList.add('hide'); audioDock()?.classList.add('zen-away'); setTimeout(() => input.focus(), 350); checkStatus(); syncRemember(); dangji(); };
+  const close = () => { panel.classList.remove('open'); lamp.classList.remove('hide'); audioDock()?.classList.remove('zen-away'); bookPanel.hidden = true; };
   lamp.onclick = open; closeBtn.onclick = close;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('open')) close(); });
 

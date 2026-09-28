@@ -862,3 +862,12 @@ img { display: block; max-width: 100%; }
   font-family: var(--ui); font-size: 10.5px; letter-spacing: .14em;
   color: var(--paper-faint); text-align: center;
 }
+
+/* ============ AI说禅 · 移动端避让 ============ */
+/* 问禅面板压过禅音条（300），开面板时禅音条自动滑走（见 zen.js） */
+#zenPanel { z-index: 310; }
+#audioDock.zen-away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+/* 窄屏：禅音条抬到禅灯上方，避免与右下角灯钮相撞 */
+@media (max-width: 980px) {
+  #audioDock { bottom: 86px; }
+}
