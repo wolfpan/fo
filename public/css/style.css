@@ -651,6 +651,11 @@ img { display: block; max-width: 100%; }
   .epigraph { padding: 100px 20px 90px; }
 }
 
+/* 手机：顶栏藏经名——长名逐字换行会把菜单撑高，挤占阅读区 */
+@media (max-width: 640px) {
+  .reader-title-sm { display: none; }
+}
+
 /* ============ 关于 · 禅宗 ============ */
 .about-grid {
   margin-top: 54px;
