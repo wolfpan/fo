@@ -741,13 +741,13 @@ img { display: block; max-width: 100%; }
   background: rgba(13,12,10,.5);
 }
 #zenInput {
-  flex: 1; background: transparent; border: none; border-bottom: 1px solid rgba(179,146,95,.35);
+  flex: 1; min-width: 0; background: transparent; border: none; border-bottom: 1px solid rgba(179,146,95,.35);
   color: var(--paper); font-family: var(--xing); font-size: 16px; padding: 9px 4px; outline: none;
   transition: border-color .3s;
 }
 #zenInput:focus { border-bottom-color: var(--gold); }
 #zenSend {
-  width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(179,146,95,.5);
+  flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(179,146,95,.5);
   background: rgba(179,146,95,.08); color: var(--gold); font-family: var(--cao); font-size: 19px;
   cursor: pointer; transition: background .3s, transform .3s var(--ease);
 }
@@ -867,7 +867,7 @@ img { display: block; max-width: 100%; }
 /* 问禅面板压过禅音条（300），开面板时禅音条自动滑走（见 zen.js） */
 #zenPanel { z-index: 310; }
 #audioDock.zen-away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
-/* 窄屏：禅音条抬到禅灯上方，避免与右下角灯钮相撞 */
+/* 窄屏：禅灯抬到禅音条上方——右下角两控件垂直分区，禅音条宽度再宽也不可能撞 */
 @media (max-width: 980px) {
-  #audioDock { bottom: 86px; }
+  #zenLamp { bottom: 92px; }
 }
