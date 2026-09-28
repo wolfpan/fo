@@ -4,3 +4,6 @@ public/fonts/
 .DS_Store
 Thumbs.db
 fo-deploy.tar.gz
+
+# AI说禅 · 本地配置（含密钥，勿入库）
+zen/config.json

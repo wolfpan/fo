@@ -12,6 +12,7 @@
 - **双字体系统**：马善政行书（默认）↔ 霞鹜文楷正楷，一键切换、本地分片加载
 - **梵音背景乐**：Web Audio 实时合成五曲（晨钟/颂钵/空山/梵音/夜雨），含佛教钟声，无限循环
 - 阅读进度、字号调节、章节目录、阅读位置记忆
+- **AI 说禅 · 曹溪影**：依《坛经》蒸馏人格的流式问答（M1）；经文引用全部来自本站语料检索，经证卡片深链竖排阅读页；Neon Postgres (pgvector) + BGE-M3 混合检索，详见 `zen/` 目录
 
 ## 运行
 
@@ -23,11 +24,22 @@ npm start     # http://localhost:3000
 ## 结构
 
 ```
-server.js            Express 服务 + 经典数据 API
+server.js            Express 服务 + 经典数据 API + 问禅路由挂载
 data/sutras.json     四部经典全文（build-data.cjs 装配）
 data/raw/            维基文库抓取与解析的中间产物
-public/              前端（首页、阅读页、梵音引擎、字体切换）
-scripts/             字体部署脚本
+public/              前端（首页、阅读页、梵音引擎、字体切换、问禅面板）
+zen/                 AI 说禅：compile 人格资产 / 服务端模块 / 测试 / 配置模板
+scripts/             字体部署、索引建库脚本
+```
+
+### AI 说禅（曹溪影）启用步骤
+
+```bash
+cp zen/config.example.json zen/config.json   # 填写主对话模型 / Neon 连接串 / 百炼嵌入 Key
+node scripts/build-zen-index.cjs --dry       # 离线试跑：只分块看统计
+node scripts/build-zen-index.cjs             # 正式建库（BGE-M3 嵌入 → 灌 Neon）
+node zen/test/recall.cjs                     # 在线验收：golden set recall@5 ≥ 80%
+npm start                                    # 首页/阅读页右下角点灯即问
 ```
 
 ## 数据来源

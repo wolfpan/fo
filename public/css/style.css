@@ -666,3 +666,94 @@ img { display: block; max-width: 100%; }
 @media (max-width: 980px) {
   .about-grid { grid-template-columns: 1fr; gap: 46px; }
 }
+
+/* ============ AI说禅 · 点灯问禅 ============ */
+#zenLamp {
+  position: fixed; right: 28px; bottom: 30px; z-index: 170;
+  width: 62px; height: 62px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #2a241a, var(--ink-2) 70%);
+  border: 1px solid rgba(179, 146, 95, .55);
+  cursor: pointer; color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 6px 22px rgba(0,0,0,.55);
+  transition: transform .45s var(--ease), opacity .45s var(--ease), box-shadow .45s var(--ease);
+}
+#zenLamp:hover { transform: translateY(-3px); box-shadow: 0 0 26px rgba(179,146,95,.28), 0 8px 26px rgba(0,0,0,.6); }
+#zenLamp.hide { opacity: 0; transform: translateY(16px); pointer-events: none; }
+.zen-lamp-char { font-family: var(--cao); font-size: 30px; line-height: 1; display: block; }
+.zen-lamp-ring { position: absolute; inset: -7px; border-radius: 50%; border: 1px solid rgba(179,146,95,.3); animation: zenPulse 4.2s ease-in-out infinite; }
+@keyframes zenPulse { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.12); opacity: .12; } }
+
+#zenPanel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 190;
+  width: min(440px, 100vw);
+  background: linear-gradient(180deg, #12100d 0%, var(--ink-2) 100%);
+  border-left: var(--hairline);
+  display: flex; flex-direction: column;
+  transform: translateX(102%); transition: transform .55s var(--ease);
+  box-shadow: -18px 0 60px rgba(0,0,0,.55);
+}
+#zenPanel.open { transform: translateX(0); }
+.zen-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px 24px 16px; border-bottom: var(--hairline);
+}
+.zen-name { font-family: var(--cao); font-size: 24px; letter-spacing: .22em; color: var(--gold); }
+.zen-sub { font-family: var(--ui); font-size: 10px; letter-spacing: .4em; color: var(--paper-faint); margin-left: 12px; }
+.zen-close { background: none; border: none; color: var(--paper-faint); font-size: 22px; cursor: pointer; padding: 4px 8px; }
+.zen-close:hover { color: var(--paper); }
+.zen-verse {
+  padding: 12px 24px; font-size: 11.5px; line-height: 1.9; color: var(--paper-faint);
+  border-bottom: var(--hairline); background: rgba(179,146,95,.04);
+}
+.zen-body { flex: 1; overflow-y: auto; padding: 22px 22px 14px; scrollbar-width: thin; scrollbar-color: var(--gold-dim) transparent; }
+.zen-msg { margin-bottom: 22px; }
+.zen-msg.me { text-align: right; }
+.zen-msg.me .zen-text {
+  display: inline-block; max-width: 88%; text-align: left;
+  background: rgba(179,146,95,.10); border: 1px solid rgba(179,146,95,.22);
+  border-radius: 12px 2px 12px 12px; padding: 10px 14px;
+}
+.zen-who { display: block; font-family: var(--ui); font-size: 10px; letter-spacing: .3em; color: var(--gold-dim); margin-bottom: 7px; }
+.zen-msg.master .zen-text {
+  font-family: var(--xing); font-size: 16.5px; line-height: 2.15; color: var(--paper);
+  padding: 4px 2px; white-space: pre-wrap;
+}
+.zen-streaming::after { content: ''; display: inline-block; width: 1px; height: 1.05em; background: var(--gold); margin-left: 3px; vertical-align: -0.15em; animation: zenBlink 1.1s step-end infinite; }
+@keyframes zenBlink { 50% { opacity: 0; } }
+.zen-hint { font-size: 12px; color: var(--cinnabar); line-height: 1.9; padding: 8px 2px; }
+.zen-cites { margin: 4px 0 12px; display: grid; gap: 10px; }
+.zen-cite {
+  display: block; text-decoration: none; border: 1px solid rgba(179,146,95,.3);
+  border-left: 2px solid var(--gold); border-radius: 2px 8px 8px 2px;
+  padding: 10px 13px; background: rgba(179,146,95,.05);
+  transition: border-color .3s, background .3s;
+}
+.zen-cite:hover { border-color: var(--gold); background: rgba(179,146,95,.1); }
+.zen-cite-src { display: block; font-family: var(--ui); font-size: 11px; letter-spacing: .12em; color: var(--gold); margin-bottom: 6px; }
+.zen-cite-text {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 12.5px; line-height: 1.95; color: var(--paper-dim);
+}
+.zen-cite-go { display: block; font-family: var(--ui); font-size: 10.5px; letter-spacing: .2em; color: var(--paper-faint); margin-top: 7px; }
+.zen-cite:hover .zen-cite-go { color: var(--gold-bright); }
+.zen-inputrow {
+  display: flex; gap: 12px; padding: 14px 20px 18px; border-top: var(--hairline);
+  background: rgba(13,12,10,.5);
+}
+#zenInput {
+  flex: 1; background: transparent; border: none; border-bottom: 1px solid rgba(179,146,95,.35);
+  color: var(--paper); font-family: var(--xing); font-size: 16px; padding: 9px 4px; outline: none;
+  transition: border-color .3s;
+}
+#zenInput:focus { border-bottom-color: var(--gold); }
+#zenSend {
+  width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(179,146,95,.5);
+  background: rgba(179,146,95,.08); color: var(--gold); font-family: var(--cao); font-size: 19px;
+  cursor: pointer; transition: background .3s, transform .3s var(--ease);
+}
+#zenSend:hover:not(:disabled) { background: rgba(179,146,95,.2); transform: translateY(-2px); }
+#zenSend:disabled { opacity: .4; cursor: default; }
+@media (max-width: 640px) {
+  #zenLamp { right: 16px; bottom: 20px; width: 54px; height: 54px; }
+  .zen-lamp-char { font-size: 26px; }
+}

@@ -26,9 +26,14 @@ async function boot() {
   renderChapter(0);
   applyPrefs();
 
-  // 恢复上次阅读位置
-  const saved = +(localStorage.getItem('fo-pos-' + id) || 0);
-  if (saved > 0) setTimeout(() => jump(saved, false), 300);
+  // 恢复上次阅读位置；经证卡片深链（#cN）优先
+  const dm = location.hash.match(/^#c(\d+)$/);
+  if (dm && +dm[1] < state.sutra.chapters.length) {
+    setTimeout(() => jump(+dm[1]), 300);
+  } else {
+    const saved = +(localStorage.getItem('fo-pos-' + id) || 0);
+    if (saved > 0) setTimeout(() => jump(saved, false), 300);
+  }
 
   bindUI();
 }

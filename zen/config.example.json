@@ -1,0 +1,37 @@
+{
+  "_说明": "复制本文件为 zen/config.json 并填写三处 YOUR_*。zen/config.json 已被 .gitignore 忽略，不会入库。",
+
+  "llm": {
+    "_说明": "主对话模型：任何 OpenAI 兼容端点皆可（百炼 / DeepSeek / GLM…）。只需填 base_url + api_key + model。",
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "api_key": "YOUR_CHAT_MODEL_API_KEY",
+    "model": "qwen3.8-max"
+  },
+
+  "neon": {
+    "_说明": "Neon Postgres 连接串。请用 Pooled connection（主机带 -pooler 后缀、端口 6543），sslmode=require。在 Neon 控制台 Connection Details 里选 'Pooled connection' 复制。",
+    "connection_string": "postgresql://USER:PASSWORD@EP-XXX-pooler.REGION.aws.neon.tech/neondb?sslmode=require"
+  },
+
+  "embedding": {
+    "_说明": "阿里百炼 BGE-M3 嵌入模型（与主对话模型可共用一个 API Key）。dimensions 必须与库表一致：一旦建库后改动此值，需要全量重建索引。",
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "api_key": "YOUR_BAILIAN_EMBEDDING_API_KEY",
+    "model": "BAAI/bge-m3",
+    "batch_size": 10,
+    "dimensions": 1024
+  },
+
+  "chat": {
+    "max_tokens": 600,
+    "temperature": 0.8
+  },
+
+  "retrieval": {
+    "_说明": "sutra_top_k 注入 prompt 的经证块数；lexical 开关字面兜底（引经精确命中）；min_score 为稠密相似度阈值（1-cosine 距离）。",
+    "sutra_top_k": 2,
+    "persona_top_k": 2,
+    "lexical": true,
+    "min_score": 0.25
+  }
+}

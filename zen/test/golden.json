@@ -1,0 +1,267 @@
+{
+  "_说明": "M1 golden set：白话问题 → 期望命中的经证块。验收口径 recall@5（top5 中存在 sutra 匹配且（章节匹配或文本含关键字））。grounding.cjs 可离线校验关键字确实存在于对应经文。",
+  "items": [
+    {
+      "q": "我知道该放下，却总是放不下，心里抓着一件事不放",
+      "expect": {
+        "sutra": "jingang",
+        "chapter_idx": 9,
+        "keywords": [
+          "应无所住",
+          "住色生心"
+        ]
+      }
+    },
+    {
+      "q": "怎么分辨哪些是真的哪些是假的？眼睛看到的可靠吗",
+      "expect": {
+        "sutra": "jingang",
+        "chapter_idx": 4,
+        "keywords": [
+          "凡所有相",
+          "若见诸相非相"
+        ]
+      }
+    },
+    {
+      "q": "一切都会过去，努力还有什么意义",
+      "expect": {
+        "sutra": "jingang",
+        "chapter_idx": 31,
+        "keywords": [
+          "梦幻泡影",
+          "如露亦如电"
+        ]
+      }
+    },
+    {
+      "q": "「应无所住而生其心」这句经文到底什么意思",
+      "expect": {
+        "sutra": "jingang",
+        "chapter_idx": 9,
+        "keywords": [
+          "应无所住"
+        ]
+      }
+    },
+    {
+      "q": "空性和物质是什么关系？色和空是一回事吗",
+      "expect": {
+        "sutra": "xinjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "色不异空"
+        ]
+      }
+    },
+    {
+      "q": "有没有什么东西是不死的、永恒存在的",
+      "expect": {
+        "sutra": [
+          "xinjing",
+          "tanjing",
+          "lengqie"
+        ],
+        "chapter_idx": 0,
+        "keywords": [
+          "不生不灭"
+        ]
+      }
+    },
+    {
+      "q": "周围一乱、别人一吵，我的心情就被带跑了",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "不是风动",
+          "仁者心动",
+          "外离相为禅",
+          "内不乱"
+        ]
+      }
+    },
+    {
+      "q": "觉得自己毛病很多，需要不断清理自己",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "本来无一物",
+          "真忏悔",
+          "自性中真忏悔"
+        ]
+      }
+    },
+    {
+      "q": "每个人本来就有佛性吗？我还差多少",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "何期自性",
+          "菩提自性",
+          "一念悟时",
+          "自性自度"
+        ]
+      }
+    },
+    {
+      "q": "我想辞掉工作躲进山里修行，远离红尘",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 1,
+        "keywords": [
+          "佛法在世间"
+        ]
+      }
+    },
+    {
+      "q": "书读了很多道理懂了很多，生活却没变化",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 6,
+        "keywords": [
+          "心迷法华转",
+          "口诵心行",
+          "被经转"
+        ]
+      }
+    },
+    {
+      "q": "迷和悟是不是就在一个念头之间",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 1,
+        "keywords": [
+          "前念迷",
+          "后念悟",
+          "一念悟时",
+          "即佛是众生"
+        ]
+      }
+    },
+    {
+      "q": "负面情绪有什么价值吗？烦恼是不是全无是处",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 1,
+        "keywords": [
+          "烦恼即菩提"
+        ]
+      }
+    },
+    {
+      "q": "解脱这件事，老师能帮我多少？最终靠谁",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "自性自度"
+        ]
+      }
+    },
+    {
+      "q": "我出身普通学历又低，总觉得自己低人一等",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 0,
+        "keywords": [
+          "下下人有上上智"
+        ]
+      }
+    },
+    {
+      "q": "打坐时是不是要把心压住、把念头断掉",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 4,
+        "keywords": [
+          "元不着心",
+          "亦不着净"
+        ]
+      }
+    },
+    {
+      "q": "要先修定再开慧吗？定和慧有先后次第吗",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 3,
+        "keywords": [
+          "定慧"
+        ]
+      }
+    },
+    {
+      "q": "自性到底像什么？能描述给我听吗",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 6,
+        "keywords": [
+          "说似一物"
+        ]
+      }
+    },
+    {
+      "q": "念佛求生西方净土，西方到底在哪里",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 2,
+        "keywords": [
+          "东方人造罪",
+          "西方"
+        ]
+      }
+    },
+    {
+      "q": "外面世界是不是心的显现？境界和心什么关系",
+      "expect": {
+        "sutra": "lengqie",
+        "chapter_idx": 0,
+        "keywords": [
+          "自心现"
+        ]
+      }
+    },
+    {
+      "q": "心里的念头像海浪一样停不下来",
+      "expect": {
+        "sutra": "lengqie",
+        "chapter_idx": 0,
+        "keywords": [
+          "波浪"
+        ]
+      }
+    },
+    {
+      "q": "人生像一场梦，一切都是幻觉吗",
+      "expect": {
+        "sutra": "lengqie",
+        "chapter_idx": 0,
+        "keywords": [
+          "如幻"
+        ]
+      }
+    },
+    {
+      "q": "达摩用哪部经印心？楞伽经讲什么的",
+      "expect": {
+        "sutra": "lengqie",
+        "chapter_idx": 0,
+        "keywords": [
+          "诸佛心"
+        ]
+      }
+    },
+    {
+      "q": "忏悔真的能消业吗？罪业从哪里来",
+      "expect": {
+        "sutra": "tanjing",
+        "chapter_idx": 5,
+        "keywords": [
+          "忏悔"
+        ]
+      }
+    }
+  ]
+}

@@ -20,7 +20,8 @@
     "compression": "^1.8.1",
     "express": "^5.2.1",
     "lxgw-wenkai-screen-web": "^1.522.0",
-    "opencc-js": "^1.4.2"
+    "opencc-js": "^1.4.2",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "sharp": "0.35.4"

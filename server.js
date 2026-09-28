@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 const sutras = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'sutras.json'), 'utf8'));
 
 app.use(compression());
+app.use(express.json({ limit: '200kb' }));
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1d',
   index: false,
@@ -45,6 +46,14 @@ app.get('/api/sutra/:id', (req, res) => {
 // 页面路由
 app.get('/', (req, res) => sendPage(res, 'index.html'));
 app.get('/read/:id', (req, res) => sendPage(res, 'sutra.html'));
+
+// AI说禅 · 曹溪影（未配置 zen/config.json 时自动跳过，不影响站点其余功能）
+try {
+  app.use('/api/zen', require('./zen/routes.cjs'));
+  console.log('问禅 · 灯已备');
+} catch (e) {
+  console.log(`问禅 · 未启用（${e.message}）`);
+}
 
 app.listen(PORT, () => {
   console.log(`般若藏 · http://localhost:${PORT}`);
