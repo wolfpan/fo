@@ -1,6 +1,6 @@
 /* 般若藏 · AI说禅 —— M2 参学簿（zen_memory 读写）
  * 形态：huatou / profile 各留一行（最新覆盖），qa-summary 追加（上限蒸馏）；
- * 隐私：默认关闭，仅 remember=true 时读写；焚簿 = 全删，无残留。 */
+ * 隐私：端上「记」钮开关（默认开，访客可关），仅 remember=true 时读写；焚簿 = 全删，无残留。 */
 'use strict';
 const { pool, q, vec } = require('./db.cjs');
 const { embedOne } = require('./embed.cjs');

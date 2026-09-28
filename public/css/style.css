@@ -773,6 +773,12 @@ img { display: block; max-width: 100%; }
   font-family: var(--ui); font-size: 11.5px; letter-spacing: .08em;
   color: var(--gold-dim); padding: 2px 2px 4px; margin-top: -8px;
 }
+.zen-mem-hint {
+  font-family: var(--ui); font-size: 11px; letter-spacing: .08em;
+  color: var(--paper-faint); padding: 2px 2px 4px; margin-top: -8px;
+  cursor: pointer; width: fit-content;
+}
+.zen-mem-hint:hover { color: var(--gold-dim); }
 .zen-book {
   position: absolute; inset: 0; z-index: 5; overflow: hidden;
   background: linear-gradient(180deg, #14110e 0%, var(--ink-2) 100%);

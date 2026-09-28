@@ -56,7 +56,7 @@
 
   const history = []; // 最近 6 轮
   let busy = false, statusChecked = false;
-  let remember = localStorage.getItem('fo-zen-remember') === '1'; // 记忆默认关闭
+  let remember = localStorage.getItem('fo-zen-remember') !== '0'; // 记忆默认开启；'0' 为访客显式关闭
   const greetEl = () => panel.querySelector('.zen-msg.first .zen-text');
 
   /* ---------- 埋点（keepalive：跳转阅读页也不丢） ---------- */
@@ -156,7 +156,9 @@
       bookCount.textContent = rows.length ? `· ${rows.length} 笔` : '';
       bookList.innerHTML = rows.length
         ? rows.map(x => `<div class="zen-book-row"><span class="zen-book-kind">${x.label}</span><span class="zen-book-text"></span></div>`).join('')
-        : '<p class="zen-book-empty">簿上无字。</p>';
+        : remember
+          ? '<p class="zen-book-empty">簿上无字——问上一问，话头与要点便记于此。</p>'
+          : '<p class="zen-book-empty">此簿未开：点右上「记」，问答要点与话头方会记下。</p>';
       rows.forEach((x, i) => { bookList.children[i].querySelector('.zen-book-text').textContent = x.text; });
     } catch (e) {
       bookList.innerHTML = `<p class="zen-book-empty">簿不可读：${e.message}</p>`;
@@ -289,6 +291,16 @@
         }
       }
       history.push({ role: 'user', content: text }, { role: 'assistant', content: masterText });
+      // 记忆未开时的一次性提示：点它即开（之后不再出现）
+      if (!remember && !localStorage.getItem('fo-zen-memhint')) {
+        localStorage.setItem('fo-zen-memhint', '1');
+        const h = document.createElement('div');
+        h.className = 'zen-mem-hint';
+        h.textContent = '〔未入参学簿 · 点此开启留痕〕';
+        h.onclick = () => { if (!remember) rememberBtn.click(); h.remove(); };
+        box.parentElement.insertBefore(h, box.nextSibling);
+        scroll();
+      }
     } catch (e) {
       clearStage();
       box.textContent = masterText || `（灯灭了：${e.message}）`;

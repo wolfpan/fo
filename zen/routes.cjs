@@ -44,7 +44,7 @@ router.post('/chat', async (req, res) => {
   const message = String(req.body.message || '').trim().slice(0, 500);
   const history = Array.isArray(req.body.history) ? req.body.history : [];
   const first = !history.length;
-  // 记忆默认关闭：仅显式 remember 且无记名帖合法时读写参学簿
+  // 记忆由端上「记」钮决定（默认开，访客可关）：仅显式 remember 且无记名帖合法时读写参学簿
   const remember = req.body.remember === true && UUID_RE.test(sessionId);
   if (!message) return res.status(400).json({ error: 'missing message' });
 
