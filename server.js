@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 3000;
 
 const sutras = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'sutras.json'), 'utf8'));
 
-app.use(compression());
+// SSE（/api/zen/chat）不可压缩：gzip 缓冲会把流式事件攒住，经 Cloudflare 回源必踩
+app.use(compression({ filter: (req, res) => !req.path.startsWith('/api/zen/') && compression.filter(req, res) }));
 app.use(express.json({ limit: '200kb' }));
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1d',
